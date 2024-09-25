@@ -7,14 +7,25 @@ app = marimo.App(width="medium")
 @app.cell(hide_code=True)
 def __(mo):
     mo.md(
-        r"""
-        ## Hypothesis
+        f"""
+    {mo.icon('lucide:github')} <https://github.com/TheLastBoyScoutUK/marimo-ball-retention>
+        """
+    )
+    return
 
-        The data below is from the the [473rd CIES Football Observatory Weekly Post](https://football-observatory.com/WeeklyPost473) using SkillCorner data to determine the midfielders with the best statistics for keeping the ball in high-pressure for the 2024/25 season .
 
-        A player is considered under pressure when he is in possession of the ball and at least one opponent player nearby him is trying to either recover the ball or limit his options. For each situation, SkillCorner determines the intensity of pressure by considering the speed of the players applying it, their distance to the player in possession and the angle of their movement. More information is available [here](https://skillcorner.crunch.help/en/models-general-concepts/pressure-intensity). 
+@app.cell(hide_code=True)
+def __(mo):
+    mo.md(
+        f"""
+    ## Hypothesis
 
-        **Just by eyeballing the list, it looks like older players tend to be better at ball retention; that is, the older the player, the higher the ball retention %. Let's test this hypothesis.**
+    The data below is from the [473rd CIES Football Observatory Weekly Post](https://football-observatory.com/WeeklyPost473) using SkillCorner data to determine the midfielders with the best statistics for keeping the ball in high-pressure for the 2024/25 season.
+
+    A player is considered under pressure when he is in possession of the ball and at least one opponent player nearby him is trying to either recover the ball or limit his options. For each situation, SkillCorner determines the intensity of pressure by considering the speed of the players applying it, their distance to the player in possession and the angle of their movement. More information is available [here](https://skillcorner.crunch.help/en/models-general-concepts/pressure-intensity). 
+
+    **Just by eyeballing the list, it looks like older players (25+) tend to be better at ball retention; that is, the older the player, the higher the ball retention %. Let's test this hypothesis.**
+
         """
     )
     return
@@ -25,11 +36,28 @@ def __():
     import pandas as pd
 
     # Load the uploaded Excel file to check its contents
-    file_path = "./ball_retention.xlsx"
-    data = pd.read_excel(file_path)
+    file_path = "./ball_retention.csv"
+    data = pd.read_csv(file_path)
 
-    # Display the first few rows of the data to understand its structure
-    data.head(100)
+    # Convert the row number to an unsigned 8-bit integer
+    data["No."] = data["No."].astype("uint8")
+
+    # Convert Club to a category type
+    data["Club"] = data["Club"].astype("category")
+
+    # Remove percentage signs and convert to float
+    data["% Ball Retention"] = (
+        data["% Ball Retention"].str.rstrip("%").astype("float").div(100).round(3)
+    )
+    data["Ratio to Team"] = (
+        data["Ratio to Team"].str.rstrip("%").astype("float").div(100).round(2)
+    )
+
+    # Remove "yrs" and convert Age to float
+    data["Age"] = data["Age"].str.rstrip(" yrs").astype("float").round(1)
+
+    # Display the data
+    data
     return data, file_path, pd
 
 
@@ -39,11 +67,9 @@ def __(mo):
         r"""
         ## Steps to Prove or Disprove the Hypothesis:
 
-        1. **Convert Age**: The age column contains a "yrs" suffix, which we'll need to clean up for numerical analysis.
+        1. **Statistical Test**: We can compute the correlation between age and ball retention percentage. A positive correlation would support the hypothesis, while a negative or no correlation would challenge it.
 
-        2. **Statistical Test**: We can compute the correlation between age and ball retention percentage. A positive correlation would support the hypothesis, while a negative or no correlation would challenge it.
-
-        3. **Visualisation**
+        2. **Visualisation**
 
         The best way to visualise this relationship is through:
 
@@ -56,9 +82,6 @@ def __(mo):
 
 @app.cell
 def __(data):
-    # Clean the "Age" column to remove the "yrs" suffix and convert to a numeric value
-    data["Age"] = data["Age"].str.replace(" yrs", "").astype(float)
-
     # Calculate the correlation between Age and % Ball Retention
     correlation = data["Age"].corr(data["% Ball Retention"])
 
@@ -80,13 +103,13 @@ def __(data):
     return classify_correlation, correlation
 
 
-@app.cell
+@app.cell(hide_code=True)
 def __(classify_correlation, correlation, mo):
     mo.md(
         f"""
-    The strength of a correlation is typically interpreted based on the magnitude of the correlation coefficient, 
-    𝑟
-    r, which ranges from -1 to 1. Here’s a general guideline for interpreting the strength of the correlation:
+    ### About correlation strength
+
+    The strength of a correlation is typically interpreted based on the magnitude of the correlation coefficient, $r$, which ranges from -1 to 1. Here’s a general guideline for interpreting the strength of the correlation:
 
     | **Correlation Range** | **Description**                                              |
     | :-------------------- | :----------------------------------------------------------- |
@@ -96,9 +119,13 @@ def __(classify_correlation, correlation, mo):
     | **±0.50 to ±0.70**    | Strong correlation. The two variables are significantly related. |
     | **±0.70 to ±1.00**    | Very strong correlation. There is a very strong relationship, with values close to ±1 indicating a near-perfect linear relationship. |
 
-    To indicate a strong correlation, the coefficient would typically need to fall in the range of ±0.50 to ±0.70 or higher. Anything below ±0.30 is usually considered weak
+    To indicate a strong correlation, the coefficient would typically need to fall in the range of ±0.50 to ±0.70 or higher. Anything below ±0.30 is usually considered weak.
 
-    **{round(correlation, 2)} which is {classify_correlation(correlation).lower()}**
+    ### Correlation strength
+
+    **{round(correlation, 2)}**; that is **{classify_correlation(correlation).lower()}** between player age and ball-retention. This confirms that a player's age has no bearing on their ball-retention capability.
+
+    ### Scatter plot
 
     Visual inspection of a scatter plot (below) further supports this conclusion, as the data points are widely spread, with no obvious upward or downward trend related to age.
         """
