@@ -14,7 +14,7 @@ def __(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def __(mo):
     mo.md(
         """
@@ -22,7 +22,9 @@ def __(mo):
 
         The data below is from the [473rd CIES Football Observatory Weekly Post](https://football-observatory.com/WeeklyPost473) using SkillCorner data to determine the midfielders with the best statistics for keeping the ball under high-pressure for the 2024/25 season.
 
-        A player is considered under pressure when he is in possession of the ball and at least one opponent player nearby him is trying to either recover the ball or limit his options. For each situation, SkillCorner determines the intensity of pressure by considering the speed of the players applying it, their distance to the player in possession and the angle of their movement. More information is available [here](https://skillcorner.crunch.help/en/models-general-concepts/pressure-intensity). 
+        A player is considered under pressure when he is in possession of the ball and at least one opponent player nearby him is trying to either recover the ball or limit his options. For each situation, SkillCorner determines the intensity of pressure by considering the speed of the players applying it, their distance to the player in possession and the angle of their movement. More information is available [here](https://skillcorner.crunch.help/en/models-general-concepts/pressure-intensity).
+
+        > Note, the data as seen below is only the first 10 rows; the dataset can be found in full within the GitHub repo in [csv format here](https://github.com/TheLastBoyScoutUK/marimo-ball-retention/blob/main/ball_retention.csv).
 
         **Just by eyeballing the list, it looks like older players (25+) tend to be better at ball retention; that is, the older the player, the higher the ball retention %. Let's test this hypothesis.**
         """
@@ -30,7 +32,7 @@ def __(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def __():
     import pandas as pd
 
@@ -56,7 +58,7 @@ def __():
     data["Age"] = data["Age"].str.rstrip(" yrs").astype("float").round(1)
 
     # Display the data
-    data
+    data.head(10)
     return data, file_path, pd
 
 
@@ -132,7 +134,7 @@ def __(classify_correlation, correlation, mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def __(data):
     # Create a scatter plot with a trendline to visualise the relationship
     import matplotlib.pyplot as plt
